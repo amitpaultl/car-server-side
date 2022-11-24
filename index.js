@@ -32,9 +32,10 @@ dbConnent()
 // data collection
 
 const user = client.db('carSelling').collection('user');
+const products = client.db('carSelling').collection('product');
 
 // post user collection
-app.post('/user',  async(req,res)=>{
+app.put('/user',  async(req,res)=>{
     try {
         const car = req.body;
         const result = await user.insertOne(car);
@@ -51,7 +52,23 @@ app.post('/user',  async(req,res)=>{
     }
 })
 
-
+// post user collection
+app.post('/addProduct',  async(req,res)=>{
+    try {
+        const car = req.body;
+        const result = await products.insertOne(car);
+        res.send({
+            success: true,
+            data: result,
+            message: 'Successfully get data'
+        })
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        })
+    }
+})
 
 
 app.get('/', (req, res) => {
