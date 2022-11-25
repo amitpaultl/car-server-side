@@ -4,7 +4,7 @@ const prot = process.env.PROT || 5000;
 require('dotenv').config();
 const app = express();
 const jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 //middleware
 app.use(cors());
@@ -70,10 +70,49 @@ app.post('/addProduct',  async(req,res)=>{
     }
 })
 
-// category item
+// single product item
 app.get('/addProduct/:id', async (req, res) => {
     try {
         const id = req.params.id
+        const query = {_id:ObjectId(id)}
+
+        const resust = await products.findOne(query)
+
+        res.send(resust)
+
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        })
+    }
+})
+
+// delete doctor
+app.delete('/addProduct/:id',  async(req,res)=>{
+    try {
+        const id =req.params.id;
+        const filter = {_id:ObjectId(id)}
+        const query = await products.deleteOne(filter);
+        res.send({
+            success: true,
+            data: query,
+            message: 'Successfully get data'
+        })
+        
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        })
+    }
+})
+
+
+// category item
+app.get('/addProduct/:email', async (req, res) => {
+    try {
+        const id = req.params.email
         const query = {category:(id)}
 
         const bookings = await products.find(query).toArray()
@@ -91,8 +130,6 @@ app.get('/addProduct/:id', async (req, res) => {
         })
     }
 })
-
-
 
 // // get booking
 app.get('/addProduct',  async (req, res) => {
@@ -120,6 +157,9 @@ app.get('/addProduct',  async (req, res) => {
         })
     }
 })
+
+
+
 
 app.get('/', (req, res) => {
     res.send('car  server running')
