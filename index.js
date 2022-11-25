@@ -70,6 +70,55 @@ app.post('/addProduct',  async(req,res)=>{
     }
 })
 
+// category item
+app.get('/addProduct/:id', async (req, res) => {
+    try {
+        const id = req.params.id
+        const query = {category:(id)}
+
+        const bookings = await products.find(query).toArray()
+
+        res.send({
+            success: true,
+            data: bookings,
+            message: 'Successfully get data'
+        })
+
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        })
+    }
+})
+
+
+
+// // get booking
+// app.get('/addProduct',  async (req, res) => {
+//     try {
+//         const decodeeEmail = req.decoded.email;
+//         const email = req.query.email;
+//         if (email !== decodeeEmail) {
+//             return res.status(403).send({ message: 'Forbidden access' })
+//         }
+//         const query = { email: email }
+
+//         const bookings = await booking.find(query).toArray()
+
+//         res.send({
+//             success: true,
+//             data: bookings,
+//             message: 'Successfully get data'
+//         })
+
+//     } catch (error) {
+//         res.send({
+//             success: false,
+//             error: error.message,
+//         })
+//     }
+// })
 
 app.get('/', (req, res) => {
     res.send('car  server running')
