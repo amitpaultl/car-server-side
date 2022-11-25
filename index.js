@@ -165,7 +165,7 @@ app.put('/addProduct/:id', async (req,res)=>{
     }
 })
 
-// delete doctor
+// delete addProduct
 app.delete('/addProduct/:id',  async(req,res)=>{
     try {
         const id =req.params.id;
@@ -273,7 +273,25 @@ app.get('/booking',  async(req,res)=>{
     }
 })
 
-// 
+// delete booking
+app.delete('/booking/:id',  async(req,res)=>{
+    try {
+        const id =req.params.id;
+        const filter = {_id:ObjectId(id)}
+        const query = await booking.deleteOne(filter);
+        res.send({
+            success: true,
+            data: query,
+            message: 'Successfully get data'
+        })
+        
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        })
+    }
+})
 
 app.get('/', (req, res) => {
     res.send('car  server running')
