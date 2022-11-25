@@ -252,6 +252,27 @@ app.put('/booking',  async(req,res)=>{
         })
     }
 })
+
+// booking get
+app.get('/booking',  async(req,res)=>{
+    try {
+        const query = {}
+
+        const result = await booking.find(query).toArray()
+      
+        res.send({
+            success: true,
+            data: result,
+            message: 'Successfully get data'
+        })
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        })
+    }
+})
+
 // 
 
 app.get('/', (req, res) => {
