@@ -108,6 +108,42 @@ app.get('/addProduct/:id', async (req, res) => {
     }
 })
 
+// put advidser
+app.put('/addProduct/:id', async (req,res)=>{
+    try {
+        // const decodedEmail =req.decoded.email;
+        // const query ={email:decodedEmail};
+        // const usersAdmin = await user.findOne(query)
+        // if(usersAdmin?.role !== 'admin'){
+        //     return res.status(403).send({message:'Forbidden access'})
+        // }
+
+
+        const id = req.params.id;
+        const filter = {_id:ObjectId(id)};
+     
+        const option = {upsert : true};
+        const updateId = {
+            $set:{
+                publish: true
+            }
+        }
+        const result = await products.updateOne(filter,updateId,option)
+        res.send({
+            success: true,
+            data: result,
+            message: 'Successfully get data'
+            
+        })
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        })
+        
+    }
+})
+
 // delete doctor
 app.delete('/addProduct/:id',  async(req,res)=>{
     try {
