@@ -52,6 +52,26 @@ app.put('/user',  async(req,res)=>{
     }
 })
 
+// Get user collection
+app.get('/user',  async(req,res)=>{
+    try {
+        const query = {}
+
+        const result = await user.find(query).toArray()
+      
+        res.send({
+            success: true,
+            data: result,
+            message: 'Successfully get data'
+        })
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        })
+    }
+})
+
 // post user collection
 app.post('/addProduct',  async(req,res)=>{
     try {
@@ -136,7 +156,7 @@ app.get('/addProduct',  async (req, res) => {
     try {
         // const decodeeEmail = req.decoded.email;
         const email = req.query.email;
-        console.log(email);
+       
         // if (email !== decodeeEmail) {
         //     return res.status(403).send({ message: 'Forbidden access' })
         // }
@@ -159,7 +179,7 @@ app.get('/addProduct',  async (req, res) => {
 })
 
 
-
+// 
 
 app.get('/', (req, res) => {
     res.send('car  server running')
