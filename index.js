@@ -293,6 +293,24 @@ app.delete('/booking/:id',  async(req,res)=>{
     }
 })
 
+// single booking id
+app.get('/booking/:id', async (req, res) => {
+    try {
+        const id = req.params.id
+        const query = {_id:ObjectId(id)}
+
+        const resust = await booking.findOne(query)
+
+        res.send(resust)
+
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        })
+    }
+})
+
 app.get('/', (req, res) => {
     res.send('car  server running')
 })
