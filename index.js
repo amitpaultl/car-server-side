@@ -6,10 +6,13 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
-//middleware
 app.use(cors());
 app.use(express.json());
 
+const key_stripe = process.env.Stripe_Secret_key
+
+const stripe = require("stripe")(key_stripe)
+//middleware
 
 
 const uri = `mongodb+srv://${process.env.User}:${process.env.Password}@cluster0.acij04d.mongodb.net/?retryWrites=true&w=majority`;
@@ -34,9 +37,49 @@ dbConnent()
 const user = client.db('carSelling').collection('user');
 const products = client.db('carSelling').collection('product');
 const booking = client.db('carSelling').collection('booking');
+const paymentColletion = client.db('carSelling').collection('payment');
+
+
+app.post("/create-payment-intent", async (req, res) => {
+    const payment = req.body;
+    const price = payment.price;
+    const amount = price * 100;
+
+    console.log(amount);
+    // Create a PaymentIntent with the order amount and currency
+    const paymentIntent = await stripe.paymentIntents.create({
+        currency: "usd",
+        amount: amount,
+        "payment_method_types": [
+            "card"
+        ]
+
+    });
+
+    res.send({
+        clientSecret: paymentIntent.client_secret,
+    });
+});
+
+// pament 
+
+app.post('/payments', async (req, res) => {
+    const payment = req.body;
+    const result = await paymentColletion.insertOne(payment);
+    const id = payment.bookingId;
+    const filter = { _id: ObjectId(id) }
+    const updateDoc = {
+        $set: {
+            paid: true,
+            transactionId: payment.transactionId
+        }
+    }
+    const updateResult = await booking.updateOne(filter, updateDoc)
+    res.send(result)
+})
 
 // post user collection
-app.put('/user',  async(req,res)=>{
+app.put('/user', async (req, res) => {
     try {
         const car = req.body;
         const result = await user.insertOne(car);
@@ -54,12 +97,12 @@ app.put('/user',  async(req,res)=>{
 })
 
 // Get user collection
-app.get('/user',  async(req,res)=>{
+app.get('/user', async (req, res) => {
     try {
         const query = {}
 
         const result = await user.find(query).toArray()
-      
+
         res.send({
             success: true,
             data: result,
@@ -73,8 +116,55 @@ app.get('/user',  async(req,res)=>{
     }
 })
 
+// put user
+app.put('/user/:email', async (req, res) => {
+    try {
+        // const decodedEmail =req.decoded.email;
+        // const query ={email:decodedEmail};
+        // const usersAdmin = await user.findOne(query)
+        // if(usersAdmin?.role !== 'admin'){
+        //     return res.status(403).send({message:'Forbidden access'})
+        // }
+
+
+        const email = req.params.email;
+        const filter = { email: email };
+
+        const option = { upsert: true };
+        const updateId = {
+            $set: {
+                verify: true
+            }
+        }
+        const result = await user.updateOne(filter, updateId, option)
+        
+        const varifyProduct = {
+            $set : {
+                varifyUser : true
+            }
+        }
+
+        const varifyUserProduct = await products.updateMany(filter, varifyProduct, option)
+
+        console.log('varifyUserProduct', varifyUserProduct);
+
+        res.send({
+            success: true,
+            data: result,
+            message: 'Successfully get data'
+
+        })
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        })
+
+    }
+})
+
 // post user collection
-app.post('/addProduct',  async(req,res)=>{
+app.post('/addProduct', async (req, res) => {
     try {
         const car = req.body;
         const result = await products.insertOne(car);
@@ -92,12 +182,12 @@ app.post('/addProduct',  async(req,res)=>{
 })
 
 // Get user collection
-app.get('/addProduct',  async(req,res)=>{
+app.get('/addProduct', async (req, res) => {
     try {
         const query = {}
 
         const result = await products.find(query).toArray()
-      
+
         res.send({
             success: true,
             data: result,
@@ -115,10 +205,10 @@ app.get('/addProduct',  async(req,res)=>{
 app.get('/addProduct/:id', async (req, res) => {
     try {
         const id = req.params.id
-        const query = {_id:ObjectId(id)}
+        const query = { _id: ObjectId(id) }
 
         const resust = await products.findOne(query)
-
+        console.log(resust);
         res.send(resust)
 
     } catch (error) {
@@ -130,7 +220,7 @@ app.get('/addProduct/:id', async (req, res) => {
 })
 
 // put advidser
-app.put('/addProduct/:id', async (req,res)=>{
+app.put('/addProduct/:id', async (req, res) => {
     try {
         // const decodedEmail =req.decoded.email;
         // const query ={email:decodedEmail};
@@ -141,42 +231,80 @@ app.put('/addProduct/:id', async (req,res)=>{
 
 
         const id = req.params.id;
-        const filter = {_id:ObjectId(id)};
-     
-        const option = {upsert : true};
+        const filter = { _id: ObjectId(id) };
+        const option = { upsert: true };
         const updateId = {
-            $set:{
+            $set: {
                 publish: true
             }
         }
-        const result = await products.updateOne(filter,updateId,option)
+        const result = await products.updateOne(filter, updateId, option)
         res.send({
             success: true,
             data: result,
             message: 'Successfully get data'
-            
+
         })
     } catch (error) {
         res.send({
             success: false,
             error: error.message,
         })
-        
+
     }
 })
 
-// delete addProduct
-app.delete('/addProduct/:id',  async(req,res)=>{
+// put report
+app.put('/report', async (req, res) => {
     try {
-        const id =req.params.id;
-        const filter = {_id:ObjectId(id)}
+        // const decodedEmail =req.decoded.email;
+        // const query ={email:decodedEmail};
+        // const usersAdmin = await user.findOne(query)
+        // if(usersAdmin?.role !== 'admin'){
+        //     return res.status(403).send({message:'Forbidden access'})
+        // }
+
+
+        const product = req.body;
+        const id = product.report
+
+        const filter = { _id: ObjectId(id) };
+
+        const option = { upsert: true };
+        const updateId = {
+            $set: {
+                report: true
+            }
+        }
+        const result = await products.updateOne(filter, updateId, option)
+        console.log(result);
+        res.send({
+            success: true,
+            data: result,
+            message: 'Successfully get data'
+
+        })
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        })
+
+    }
+})
+
+// delete addProduct id
+app.delete('/addProduct/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const filter = { _id: ObjectId(id) }
         const query = await products.deleteOne(filter);
         res.send({
             success: true,
             data: query,
             message: 'Successfully get data'
         })
-        
+
     } catch (error) {
         res.send({
             success: false,
@@ -187,10 +315,10 @@ app.delete('/addProduct/:id',  async(req,res)=>{
 
 
 // category item
-app.get('/addProduct/:email', async (req, res) => {
+app.get('/category/:cat', async (req, res) => {
     try {
-        const id = req.params.email
-        const query = {category:(id)}
+        const id = req.params.cat;
+        const query = { category: id }
 
         const bookings = await products.find(query).toArray()
 
@@ -209,11 +337,11 @@ app.get('/addProduct/:email', async (req, res) => {
 })
 
 // // get booking
-app.get('/addProduct',  async (req, res) => {
+app.get('/sellerProduct', async (req, res) => {
     try {
         // const decodeeEmail = req.decoded.email;
         const email = req.query.email;
-       
+
         // if (email !== decodeeEmail) {
         //     return res.status(403).send({ message: 'Forbidden access' })
         // }
@@ -236,7 +364,7 @@ app.get('/addProduct',  async (req, res) => {
 })
 
 // booking post
-app.put('/booking',  async(req,res)=>{
+app.put('/booking', async (req, res) => {
     try {
         const car = req.body;
         const result = await booking.insertOne(car);
@@ -254,12 +382,12 @@ app.put('/booking',  async(req,res)=>{
 })
 
 // booking get
-app.get('/booking',  async(req,res)=>{
+app.get('/booking', async (req, res) => {
     try {
         const query = {}
 
         const result = await booking.find(query).toArray()
-      
+
         res.send({
             success: true,
             data: result,
@@ -274,17 +402,17 @@ app.get('/booking',  async(req,res)=>{
 })
 
 // delete booking
-app.delete('/booking/:id',  async(req,res)=>{
+app.delete('/booking/:id', async (req, res) => {
     try {
-        const id =req.params.id;
-        const filter = {_id:ObjectId(id)}
+        const id = req.params.id;
+        const filter = { _id: ObjectId(id) }
         const query = await booking.deleteOne(filter);
         res.send({
             success: true,
             data: query,
             message: 'Successfully get data'
         })
-        
+
     } catch (error) {
         res.send({
             success: false,
@@ -297,7 +425,7 @@ app.delete('/booking/:id',  async(req,res)=>{
 app.get('/booking/:id', async (req, res) => {
     try {
         const id = req.params.id
-        const query = {_id:ObjectId(id)}
+        const query = { _id: ObjectId(id) }
 
         const resust = await booking.findOne(query)
 
@@ -310,6 +438,9 @@ app.get('/booking/:id', async (req, res) => {
         })
     }
 })
+
+
+
 
 app.get('/', (req, res) => {
     res.send('car  server running')
