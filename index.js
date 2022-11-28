@@ -82,7 +82,7 @@ const verifyseller = async (req, res, next) => {
 
 // payment
 
-app.post("/create-payment-intent", async (req, res) => {
+app.post("/create-payment-intent",  async (req, res) => {
     const payment = req.body;
     const price = payment.price;
     const amount = price * 100;
@@ -105,7 +105,7 @@ app.post("/create-payment-intent", async (req, res) => {
 
 // pament 
 
-app.post('/payments', async (req, res) => {
+app.post('/payments',  async (req, res) => {
     const payment = req.body;
     const productIdMain = payment.productId
     const result = await paymentColletion.insertOne(payment);
@@ -148,7 +148,7 @@ app.put('/user', async (req, res) => {
 })
 
 // Get user collection
-app.get('/user', async (req, res) => {
+app.get('/user', veriFJwt, async (req, res) => {
     try {
         const query = {}
 
@@ -168,7 +168,7 @@ app.get('/user', async (req, res) => {
 })
 
 // delete user id
-app.delete('/user/:id', async (req, res) => {
+app.delete('/user/:id', veriFJwt, async (req, res) => {
     try {
         const id = req.params.id;
         const filter = { _id: ObjectId(id) }
@@ -188,7 +188,7 @@ app.delete('/user/:id', async (req, res) => {
 })
 
 // put user
-app.put('/user/:email', async (req, res) => {
+app.put('/user/:email',  veriFJwt, async (req, res) => {
     try {
         // const decodedEmail =req.decoded.email;
         // const query ={email:decodedEmail};
@@ -283,7 +283,7 @@ app.get('/addProduct', async (req, res) => {
 })
 
 // Get user collection
-app.get('/myProduct', async (req, res) => {
+app.get('/myProduct',veriFJwt, async (req, res) => {
     try {
         const email = req.query.email;
         const filter = { email: email };
@@ -302,7 +302,7 @@ app.get('/myProduct', async (req, res) => {
 })
 
 // get seller admin user 
-app.get('/seller/admin/:email', async (req,res)=>{
+app.get('/seller/admin/:email',veriFJwt, async (req,res)=>{
     try {
         const email = req.params.email;
         const query = {email};
@@ -318,7 +318,7 @@ app.get('/seller/admin/:email', async (req,res)=>{
 })
 
 // get admin admin user 
-app.get('/admin/admin/:email', async (req,res)=>{
+app.get('/admin/admin/:email', veriFJwt, async (req,res)=>{
     try {
         const email = req.params.email;
         const query = {email};
@@ -333,8 +333,8 @@ app.get('/admin/admin/:email', async (req,res)=>{
     }
 })
 
-// get admin admin user 
-app.get('/user/admin/:email', async (req,res)=>{
+// get user admin user 
+app.get('/user/admin/:email', veriFJwt, async (req,res)=>{
     try {
         const email = req.params.email;
         const query = {email};
@@ -368,7 +368,7 @@ app.get('/addProduct/:id', async (req, res) => {
 })
 
 // put advidser
-app.put('/addProduct/:id', async (req, res) => {
+app.put('/addProduct/:id', veriFJwt, async (req, res) => {
     try {
         // const decodedEmail =req.decoded.email;
         // const query ={email:decodedEmail};
@@ -403,7 +403,7 @@ app.put('/addProduct/:id', async (req, res) => {
 })
 
 // put report
-app.put('/report', async (req, res) => {
+app.put('/report', veriFJwt,  async (req, res) => {
     try {
         // const decodedEmail =req.decoded.email;
         // const query ={email:decodedEmail};
@@ -442,7 +442,7 @@ app.put('/report', async (req, res) => {
 })
 
 // delete addProduct id
-app.delete('/addProduct/:id', async (req, res) => {
+app.delete('/addProduct/:id', veriFJwt, async (req, res) => {
     try {
         const id = req.params.id;
         const filter = { _id: ObjectId(id) }
@@ -484,35 +484,9 @@ app.get('/category/:cat', async (req, res) => {
     }
 })
 
-// // get booking
-app.get('/sellerProduct', async (req, res) => {
-    try {
-        // const decodeeEmail = req.decoded.email;
-        const email = req.query.email;
-
-        // if (email !== decodeeEmail) {
-        //     return res.status(403).send({ message: 'Forbidden access' })
-        // }
-        const query = { email: email }
-
-        const bookings = await products.find(query).toArray()
-
-        res.send({
-            success: true,
-            data: bookings,
-            message: 'Successfully get data'
-        })
-
-    } catch (error) {
-        res.send({
-            success: false,
-            error: error.message,
-        })
-    }
-})
 
 // booking post
-app.put('/booking', async (req, res) => {
+app.put('/booking', veriFJwt, async (req, res) => {
     try {
         const car = req.body;
         const result = await booking.insertOne(car);
@@ -530,7 +504,7 @@ app.put('/booking', async (req, res) => {
 })
 
 // booking get
-app.get('/booking', async (req, res) => {
+app.get('/booking', veriFJwt,  async (req, res) => {
     try {
         const query = {}
 
@@ -550,7 +524,7 @@ app.get('/booking', async (req, res) => {
 })
 
 // delete booking
-app.delete('/booking/:id', async (req, res) => {
+app.delete('/booking/:id', veriFJwt, async (req, res) => {
     try {
         const id = req.params.id;
         const filter = { _id: ObjectId(id) }
@@ -570,7 +544,7 @@ app.delete('/booking/:id', async (req, res) => {
 })
 
 // single booking id
-app.get('/booking/:id', async (req, res) => {
+app.get('/booking/:id',  veriFJwt, async (req, res) => {
     try {
         const id = req.params.id
         const query = { _id: ObjectId(id) }
